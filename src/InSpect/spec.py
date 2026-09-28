@@ -1,4 +1,5 @@
 from panel import Column, Row
+from panel.widgets import StaticText
 
 from bokeh.models import Button, HoverTool
 from bokeh import palettes
@@ -15,6 +16,9 @@ TOOLTIPS = [
 NORMALIZED = False
 
 def plot_pixel_position(x, y, nx, ny):
+    x_info.value = f"{x:d}"
+    y_info.value = f"{y:d}"
+
     for p in p_Stokes:
         p.line([x,x], [0,ny], line_width=2, color="red", name="pixel_marker_x")
         p.line([0,nx], [y,y], line_width=2, color="red", name="pixel_marker_y")
@@ -53,6 +57,7 @@ def plot_mean_and_current_spectrum(x, y):
     p2.line(spectra[0].wavelengths, spectra[0].intensities[:,int(y),int(x)], line_width=2, color="red", name="local_spectrum")
 
 def plot_vertical_line_at_wavelength(wave_index):
+    wavelength_info.value = f"{spectra[0].wavelengths[wave_index]:.4f} nm"
     p2.vspan(x=[spectra[0].wavelengths[wave_index]], line_width=2, color="green", line_dash="dashed", name="wavelength_marker")
     
 def on_wavelength_click(event):
@@ -79,6 +84,9 @@ def on_image_click(event):
         return
     
     plot_mean_and_current_spectrum(x, y)
+
+    x_info.value = f"{x:d}"
+    y_info.value = f"{y:d}"
 
     # remove previous pixel position markers on map plot
     for p in p_Stokes:
@@ -109,10 +117,10 @@ def normalize_spectra():
     initialize_plots(wave_index=0)
 
 #--- header info and option
-plot_button = Button(label="Initialize plots", button_type="primary", margin=10)
+plot_button = Button(label="Initialize plots", button_type="primary", margin=(10, 5, 5, 10))
 plot_button.on_click(lambda event: initialize_plots(wave_index=0))
 
-normalize_button = Button(label="Normalize", button_type="primary", margin=10)
+normalize_button = Button(label="Normalize", button_type="primary", margin=(5, 5, 5, 10))
 normalize_button.on_click(normalize_spectra)
 
 # header = Column(Row(plot_button, width_policy="max"), sizing_mode="stretch_both", width_policy="max")
@@ -144,3 +152,9 @@ p2.add_tools(HoverTool(tooltips=[("wavelength", "@x{0[.]0000}"),
                         mode="vline",
                     )
             )
+
+wavelength_info = StaticText(label="wavelength", value="", width=200, height=30, margin=(10, 5, 10, 10), name="wavelength_info")
+x_info = StaticText(label="x", value="", width=50, height=30, margin=(10, 5, 5, 0), name="x_info")
+y_info = StaticText(label="y", value="", width=50, height=30, margin=(10, 5, 10, 5), name="y_info")
+
+main_plots = Row(Column(wavelength_info, p2), Column(Row(x_info, y_info), stokes_grid))
