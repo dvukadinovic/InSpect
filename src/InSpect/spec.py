@@ -13,7 +13,12 @@ TOOLTIPS = [
     ("(x,y)", "($x{int}, $y{int})"),
 ]
 
+INITIALIZED = False
 NORMALIZED = False
+FONT_SIZE = "12pt"
+
+XPOS = 0
+YPOS = 0
 
 def plot_pixel_position(x, y, nx, ny):
     x_info.value = f"{x:d}"
@@ -24,6 +29,8 @@ def plot_pixel_position(x, y, nx, ny):
         p.line([0,nx], [y,y], line_width=2, color="red", name="pixel_marker_y")
 
 def initialize_plots(wave_index):
+    global INITIALIZED
+
     if len(spectra)==0:
         return
     nx, ny = spectra[0].intensities.shape[1:]
@@ -34,10 +41,12 @@ def initialize_plots(wave_index):
     p2.renderers = []
 
     plot_stokes_maps(wave_index=wave_index)
-    plot_pixel_position(0, 0, nx, ny)
+    plot_pixel_position(XPOS, YPOS, nx, ny)
 
-    plot_mean_and_current_spectrum(0, 0)
+    plot_mean_and_current_spectrum(XPOS, YPOS)
     plot_vertical_line_at_wavelength(wave_index=wave_index)
+
+    INITIALIZED = True
 
 def plot_stokes_maps(wave_index):
     nx, ny = spectra[0].intensities.shape[1:]
@@ -61,6 +70,9 @@ def plot_vertical_line_at_wavelength(wave_index):
     p2.vspan(x=[spectra[0].wavelengths[wave_index]], line_width=2, color="green", line_dash="dashed", name="wavelength_marker")
     
 def on_wavelength_click(event):
+    if not INITIALIZED:
+        return
+
     x = event.x
     ind = np.argmin(np.abs(spectra[0].wavelengths-x))
 
@@ -75,6 +87,11 @@ def on_wavelength_click(event):
     plot_vertical_line_at_wavelength(wave_index=ind)
 
 def on_image_click(event):
+    global XPOS, YPOS
+
+    if not INITIALIZED:
+        return
+
     x = int(event.x)
     y = int(event.y)
     nx = spectra[0].intensities.shape[1]
@@ -83,10 +100,10 @@ def on_image_click(event):
     if x<0 or x>=nx or y<0 or y>=ny:
         return
     
-    plot_mean_and_current_spectrum(x, y)
-
-    x_info.value = f"{x:d}"
-    y_info.value = f"{y:d}"
+    XPOS = x
+    YPOS = y
+    
+    plot_mean_and_current_spectrum(XPOS, YPOS)
 
     # remove previous pixel position markers on map plot
     for p in p_Stokes:
@@ -95,7 +112,7 @@ def on_image_click(event):
             if render is not None:
                 p.renderers.remove(render)
 
-    plot_pixel_position(x, y, nx, ny)
+    plot_pixel_position(XPOS, YPOS, nx, ny)
 
 def normalize_spectra():
     global NORMALIZED
@@ -153,8 +170,8 @@ p2.add_tools(HoverTool(tooltips=[("wavelength", "@x{0[.]0000}"),
                     )
             )
 
-wavelength_info = StaticText(label="wavelength", value="", width=200, height=30, margin=(10, 5, 10, 10), name="wavelength_info")
-x_info = StaticText(label="x", value="", width=50, height=30, margin=(10, 5, 5, 0), name="x_info")
-y_info = StaticText(label="y", value="", width=50, height=30, margin=(10, 5, 10, 5), name="y_info")
+wavelength_info = StaticText(label="wavelength", value="nan", width=300, height=30, margin=(10, 5, 10, 50), name="wavelength_info", styles={"font-size": FONT_SIZE})
+x_info = StaticText(label="x", value="nan", width=100, height=30, margin=(10, 5, 5, 50), name="x_info", styles={"font-size": FONT_SIZE})
+y_info = StaticText(label="y", value="nan", width=100, height=30, margin=(10, 5, 10, 5), name="y_info", styles={"font-size": FONT_SIZE})
 
-main_plots = Row(Column(wavelength_info, p2), Column(Row(x_info, y_info), stokes_grid))
+main_plots = Row(Column(Row(x_info, y_info), p2), Column(wavelength_info, stokes_grid))
