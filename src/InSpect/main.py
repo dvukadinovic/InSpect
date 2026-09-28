@@ -1,14 +1,29 @@
 import panel as pn
-from panel import Tabs, Row, Column
+from panel import Tabs, Row, Column, VSpacer
+from panel.layout import Divider
 
+from spec import stokes_grid, header, p2
 from input import files, load_files_button, info_box
-from .spec import stokes_grid, plot_button, p2
 
 # pn.curdoc().title = "InSpect"
 
 tabs = Tabs(
-    ("Files", Column(Row(load_files_button, info_box), files)),
-    ("Spectra", Column(plot_button, stokes_grid, p2)),
-    # ("Inversions", Column(inversions_table, inversions_plot)),
+    ("Files", Column(Row(load_files_button, 
+                         info_box
+                     ), 
+                     files,
+                     width_policy="max",
+                     sizing_mode="stretch_both"
+                    )
+    ),
+    ("Spectra", Column(header,  
+                       Divider(margin=10),
+                       Row(p2, stokes_grid, margin=10), 
+                       width_policy="max",
+                       sizing_mode="stretch_both"
+                       )
+    ),
+    width_policy="max",
+    sizing_mode="stretch_both"
 )
 tabs.servable()
