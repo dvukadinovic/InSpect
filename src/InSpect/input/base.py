@@ -6,6 +6,7 @@ from .mps_atlas import load_spectrum
 
 spectra = []
 mean_spectra = []
+cog_velocity = []
 
 class FileTreeSelector(FileSelector):
     def __init__(self, **params):
