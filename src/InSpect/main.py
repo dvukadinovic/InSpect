@@ -23,7 +23,6 @@ tabs = Tabs(
                        sizing_mode="stretch_both"
                        )
     ),
-    title="InSpect",
     width_policy="max",
     sizing_mode="stretch_both"
 )
